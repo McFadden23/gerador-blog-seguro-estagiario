@@ -3,8 +3,9 @@ pdf_exporter.py — Geração de PDF e Carrossel para LinkedIn (ReportLab).
 
 Recursos:
 - Exportação de Carrossel Quadrado (1080 x 1080 px) para LinkedIn
-- Identidade visual dinâmica a partir de workspace/01_diretrizes_e_tom.md
-- Tratamento resiliente do logotipo (assets/Logo_nautiplus.png)
+- Identidade visual dinâmica com alto contraste e legibilidade impecável
+- Fundo claro (#FFFFFF / #F8F9FA), tipografia escura (#1E293B), títulos na cor primária da marca (#00B7AA / #12477B)
+- Tratamento resiliente do logotipo (assets/Logo_nautiplus.png ou assets/logo.png)
 """
 
 import io
@@ -18,36 +19,36 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak, KeepTogether
 from reportlab.pdfgen import canvas
 
-# ── Cores Padrão da Marca (Fallback se não encontradas no Markdown) ───────────
-COLOR_PRIMARY_DEFAULT   = "#00B7AA"  # Verde-Água / Turquesa
-COLOR_SECONDARY_DEFAULT = "#12477B"  # Azul-Marinho
-COLOR_TEXT_DEFAULT      = "#4A5F70"  # Cinza-Azulado
-COLOR_BG_DEFAULT        = "#DFEAE6"  # Gelo / Menta Claro
+# ── Cores Padrão da Marca & Contraste ─────────────────────────────────────────
+COLOR_PRIMARY_DEFAULT   = "#00B7AA"  # Verde-Água / Turquesa (Destaques e Títulos)
+COLOR_SECONDARY_DEFAULT = "#12477B"  # Azul-Marinho (Títulos H1 e Barras)
+COLOR_TEXT_DARK         = "#1E293B"  # Grafite Escuro para máxima legibilidade do corpo
+COLOR_TEXT_MUTED        = "#64748B"  # Cinza neutro para rodapés e subtítulos secundários
+COLOR_BG_DEFAULT        = "#FFFFFF"  # Fundo Branco puro para alto contraste
 
 
 def get_brand_colors(workspace_dir: Path | None = None) -> dict:
-    """Extrai cores da marca do arquivo workspace/01_diretrizes_e_tom.md ou usa padrões."""
+    """Extrai cores da marca do arquivo workspace/01_diretrizes_e_tom.md mantendo contraste estrito."""
     colors = {
         "primary": COLOR_PRIMARY_DEFAULT,
         "secondary": COLOR_SECONDARY_DEFAULT,
-        "text": COLOR_TEXT_DEFAULT,
+        "text": COLOR_TEXT_DARK,
+        "muted": COLOR_TEXT_MUTED,
         "bg": COLOR_BG_DEFAULT,
     }
 
     if workspace_dir:
         guideline_path = workspace_dir / "01_diretrizes_e_tom.md"
         if guideline_path.exists():
-            text = guideline_path.read_text(encoding="utf-8")
-            # Procura códigos hexadecimais no texto
-            hex_codes = re.findall(r"#(?:[0-9a-fA-F]{3}){1,2}\b", text)
-            if len(hex_codes) >= 4:
-                colors["primary"] = hex_codes[0]
-                colors["secondary"] = hex_codes[1]
-                colors["text"] = hex_codes[2]
-                colors["bg"] = hex_codes[3]
-            elif len(hex_codes) >= 2:
-                colors["primary"] = hex_codes[0]
-                colors["secondary"] = hex_codes[1]
+            try:
+                text = guideline_path.read_text(encoding="utf-8")
+                # Procura códigos hexadecimais no texto
+                hex_codes = re.findall(r"#(?:[0-9a-fA-F]{3}){1,2}\b", text)
+                if len(hex_codes) >= 2:
+                    colors["primary"] = hex_codes[0]
+                    colors["secondary"] = hex_codes[1]
+            except Exception:
+                pass
 
     return colors
 
@@ -78,23 +79,25 @@ class NumberedCanvas(canvas.Canvas):
         width, height = 1080, 1080
         c_primary = HexColor(self.brand_colors.get("primary", COLOR_PRIMARY_DEFAULT))
         c_secondary = HexColor(self.brand_colors.get("secondary", COLOR_SECONDARY_DEFAULT))
+        c_muted = HexColor(self.brand_colors.get("muted", COLOR_TEXT_MUTED))
         c_bg = HexColor(self.brand_colors.get("bg", COLOR_BG_DEFAULT))
 
-        # Fundo do slide
+        # Fundo do slide (Branco / Claro)
         self.saveState()
         self.setFillColor(c_bg)
         self.rect(0, 0, width, height, fill=1, stroke=0)
 
-        # ── Cabeçalho (Barra Superior) ─────────────────────────────────────────
+        # ── Cabeçalho (Barra Superior com contraste e elegância) ───────────────
         bar_height = 110
         self.setFillColor(c_secondary)
         self.rect(0, height - bar_height, width, bar_height, fill=1, stroke=0)
 
-        # Linha de destaque primária
+        # Linha de destaque primária da marca
         self.setFillColor(c_primary)
         self.rect(0, height - bar_height - 8, width, 8, fill=1, stroke=0)
 
         # Renderiza Logo se existir
+        logo_drawn = False
         if self.logo_path and Path(self.logo_path).exists():
             try:
                 self.drawImage(
@@ -106,28 +109,30 @@ class NumberedCanvas(canvas.Canvas):
                     preserveAspectRatio=True,
                     mask="auto"
                 )
+                logo_drawn = True
             except Exception:
-                pass
-        else:
+                logo_drawn = False
+
+        if not logo_drawn:
             self.setFillColor(HexColor("#FFFFFF"))
             self.setFont("Helvetica-Bold", 32)
             self.drawString(60, height - bar_height + 40, "NAUTIPLUS")
 
-        # ── Rodapé ─────────────────────────────────────────────────────────────
+        # ── Rodapé (Claro, Neutro e Elegante) ──────────────────────────────────
         footer_height = 80
-        self.setFillColor(c_secondary)
-        self.setFont("Helvetica-Bold", 24)
-        self.drawString(60, 40, self.brand_name)
+        # Barra sutil acima do rodapé
+        self.setStrokeColor(HexColor("#E2E8F0"))
+        self.setLineWidth(2)
+        self.line(60, footer_height, width - 60, footer_height)
+
+        self.setFillColor(c_muted)
+        self.setFont("Helvetica-Bold", 22)
+        self.drawString(60, 36, self.brand_name)
 
         # Numeração de Slide (ex: Slide 1 de 5)
         slide_text = f"Slide {self._pageNumber} de {page_count}"
-        self.setFont("Helvetica-Bold", 24)
-        self.drawRightString(width - 60, 40, slide_text)
-
-        # Barra sutil acima do rodapé
-        self.setStrokeColor(c_primary)
-        self.setLineWidth(3)
-        self.line(60, footer_height, width - 60, footer_height)
+        self.setFont("Helvetica-Bold", 22)
+        self.drawRightString(width - 60, 36, slide_text)
 
         self.restoreState()
 
@@ -166,11 +171,11 @@ def _parse_markdown_for_carousel(content: str) -> tuple[dict, list[str]]:
 
 def generate_linkedin_carousel_pdf(content: str, workspace_dir: Path, assets_dir: Path) -> bytes:
     """
-    Gera o Carrossel do LinkedIn no formato quadrado 1080 x 1080 px em bytes.
+    Gera o Carrossel do LinkedIn no formato quadrado 1080 x 1080 px em bytes com alto contraste.
     
     Estrutura dos Slides:
-    - Slide 1: Capa com título chamativo e destaque.
-    - Slides 2 a N-1: Conteúdo sintetizado em tópicos visuais com fontes grandes e espaçamento.
+    - Slide 1: Capa com título de forte destaque, subtítulo e indicador de leitura.
+    - Slides 2 a N-1: Conteúdo sintetizado em tópicos visuais escuros (#1E293B), fontes confortáveis (22-26pt).
     - Slide Final: CTA chamativo convidando a regularizar o fluxo e acessar o blog.
     """
     colors = get_brand_colors(workspace_dir)
@@ -202,121 +207,136 @@ def generate_linkedin_carousel_pdf(content: str, workspace_dir: Path, assets_dir
 
     styles = getSampleStyleSheet()
 
-    # Estilos customizados
+    # Cores resolvidas
     c_primary_hex = colors.get("primary", COLOR_PRIMARY_DEFAULT)
     c_secondary_hex = colors.get("secondary", COLOR_SECONDARY_DEFAULT)
-    c_text_hex = colors.get("text", COLOR_TEXT_DEFAULT)
+    c_text_dark_hex = colors.get("text", COLOR_TEXT_DARK)
+    c_muted_hex = colors.get("muted", COLOR_TEXT_MUTED)
 
+    # ── Estilos Tipográficos de Alto Contraste ─────────────────────────────────
     style_cover_badge = ParagraphStyle(
         "CoverBadge",
         parent=styles["Normal"],
         fontName="Helvetica-Bold",
-        fontSize=26,
-        leading=32,
-        textColor=HexColor(c_secondary_hex),
+        fontSize=24,
+        leading=30,
+        textColor=HexColor(c_primary_hex),
         alignment=0,
-        spaceAfter=30,
+        spaceAfter=25,
     )
 
     style_cover_title = ParagraphStyle(
         "CoverTitle",
         parent=styles["Normal"],
         fontName="Helvetica-Bold",
-        fontSize=52,
-        leading=62,
+        fontSize=48,
+        leading=58,
         textColor=HexColor(c_secondary_hex),
         alignment=0,
-        spaceAfter=35,
+        spaceAfter=30,
     )
 
     style_cover_sub = ParagraphStyle(
         "CoverSub",
         parent=styles["Normal"],
         fontName="Helvetica",
-        fontSize=30,
-        leading=42,
-        textColor=HexColor(c_text_hex),
+        fontSize=26,
+        leading=38,
+        textColor=HexColor(c_text_dark_hex),
         alignment=0,
-        spaceAfter=40,
+        spaceAfter=35,
+    )
+
+    style_cover_cta = ParagraphStyle(
+        "CoverCTA",
+        parent=styles["Normal"],
+        fontName="Helvetica-Bold",
+        fontSize=24,
+        leading=32,
+        textColor=HexColor(c_primary_hex),
+        alignment=0,
+        spaceAfter=20,
     )
 
     style_slide_title = ParagraphStyle(
         "SlideTitle",
         parent=styles["Normal"],
         fontName="Helvetica-Bold",
-        fontSize=44,
-        leading=54,
-        textColor=HexColor(c_secondary_hex),
-        spaceAfter=40,
-    )
-
-    style_body_text = ParagraphStyle(
-        "SlideBody",
-        parent=styles["Normal"],
-        fontName="Helvetica",
-        fontSize=32,
+        fontSize=38,
         leading=48,
-        textColor=HexColor(c_text_hex),
-        spaceAfter=30,
+        textColor=HexColor(c_secondary_hex),
+        spaceAfter=35,
     )
 
     style_bullet_item = ParagraphStyle(
         "SlideBullet",
         parent=styles["Normal"],
         fontName="Helvetica",
-        fontSize=30,
-        leading=44,
-        textColor=HexColor(c_text_hex),
-        leftIndent=30,
+        fontSize=25,
+        leading=38,
+        textColor=HexColor(c_text_dark_hex),
+        leftIndent=25,
         spaceAfter=25,
+    )
+
+    style_cta_badge = ParagraphStyle(
+        "CtaBadge",
+        parent=styles["Normal"],
+        fontName="Helvetica-Bold",
+        fontSize=24,
+        leading=30,
+        textColor=HexColor(c_primary_hex),
+        alignment=1,
+        spaceAfter=20,
     )
 
     style_cta_title = ParagraphStyle(
         "CtaTitle",
         parent=styles["Normal"],
         fontName="Helvetica-Bold",
-        fontSize=54,
-        leading=64,
+        fontSize=46,
+        leading=56,
         textColor=HexColor(c_secondary_hex),
         alignment=1,
-        spaceAfter=30,
+        spaceAfter=25,
     )
 
     style_cta_body = ParagraphStyle(
         "CtaBody",
         parent=styles["Normal"],
         fontName="Helvetica",
-        fontSize=32,
-        leading=46,
-        textColor=HexColor(c_text_hex),
+        fontSize=26,
+        leading=40,
+        textColor=HexColor(c_text_dark_hex),
         alignment=1,
-        spaceAfter=40,
+        spaceAfter=35,
     )
 
-    style_cta_button = ParagraphStyle(
-        "CtaButton",
+    style_cta_action = ParagraphStyle(
+        "CtaAction",
         parent=styles["Normal"],
         fontName="Helvetica-Bold",
-        fontSize=36,
-        leading=46,
-        textColor=HexColor("#FFFFFF"),
+        fontSize=26,
+        leading=38,
+        textColor=HexColor(c_primary_hex),
         alignment=1,
+        spaceAfter=20,
     )
 
     story = []
 
     # ── SLIDE 1: CAPA ─────────────────────────────────────────────────────────
-    story.append(Spacer(1, 40))
+    story.append(Spacer(1, 30))
     story.append(Paragraph("📌 GUIA RÁPIDO & COMPLIANCE", style_cover_badge))
     story.append(Paragraph(title, style_cover_title))
     if subtitle:
         story.append(Paragraph(subtitle, style_cover_sub))
-    story.append(Spacer(1, 40))
-    story.append(Paragraph(f"<b>Arraste para o lado 👉</b>", style_cover_badge))
+    story.append(Spacer(1, 30))
+    story.append(Paragraph("<b>Arraste para o lado 👉</b>", style_cover_cta))
     story.append(PageBreak())
 
     # ── SLIDES DE CONTEÚDO (Distribuição dos blocos) ──────────────────────────
-    # Agrupa blocos de 1 a 2 por slide para garantir tipografia grande e legível
+    # Agrupa blocos de 1 a 2 por slide para garantir tipografia legível e confortável
     content_slides = []
     chunk = []
     for b in blocks:
@@ -344,15 +364,16 @@ def generate_linkedin_carousel_pdf(content: str, workspace_dir: Path, assets_dir
         story.append(PageBreak())
 
     # ── SLIDE FINAL: CTA (Chamada para Ação) ──────────────────────────────────
-    story.append(Spacer(1, 80))
+    story.append(Spacer(1, 50))
+    story.append(Paragraph("🎯 PRÓXIMO PASSO", style_cta_badge))
     story.append(Paragraph("🚀 Elimine Riscos no Onboarding", style_cta_title))
     story.append(Paragraph(
         "Não exponha sua empresa a passivos trabalhistas por falha operacional básica. "
         "Tenha emissão instantânea e apólices 100% auditadas com a <b>Nautiplus Seguro Estágio Rápido</b>.",
         style_cta_body
     ))
-    story.append(Spacer(1, 30))
-    story.append(Paragraph("👉 <b>Acesse o artigo completo no blog e regularize sua operação!</b>", style_cta_body))
+    story.append(Spacer(1, 20))
+    story.append(Paragraph("👉 <b>Acesse o artigo completo no blog e regularize sua operação!</b>", style_cta_action))
 
     # Constrói o PDF com o NumberedCanvas
     def _canvas_factory(filename, **kwargs):
@@ -366,3 +387,4 @@ def generate_linkedin_carousel_pdf(content: str, workspace_dir: Path, assets_dir
 
     doc.build(story, canvasmaker=_canvas_factory)
     return buffer.getvalue()
+
