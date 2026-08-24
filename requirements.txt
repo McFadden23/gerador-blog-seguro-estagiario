@@ -1,0 +1,23 @@
+# Dependências do Blog Automation System
+# Compatível com Streamlit Community Cloud (Linux / Python 3.10+)
+
+# ── Interface Web ─────────────────────────────────────────────────────────────
+streamlit>=1.30.0               # Interface web interativa
+
+# ── IA / Geração de Conteúdo ──────────────────────────────────────────────────
+google-genai>=0.1.1             # SDK oficial do Google Gemini
+google-generativeai>=0.8.0      # SDK Gemini legado / complementar
+
+# ── Manipulação e Estruturação de Dados ───────────────────────────────────────
+pandas>=2.0.0                   # Manipulação e estruturação de dados
+
+# ── PDF / Carrossel LinkedIn ──────────────────────────────────────────────────
+reportlab>=4.0.0                # Renderização de Carrossel LinkedIn quadrado (1080x1080)
+xhtml2pdf>=0.2.17               # Conversão HTML → PDF (sem dependências nativas)
+markdown2>=2.4.0                # Markdown → HTML
+Jinja2>=3.1.0                   # Template engine para o HTML do PDF
+
+# ── CLI & Utilitários ─────────────────────────────────────────────────────────
+click>=8.1.0                    # Interface de linha de comando
+python-dotenv>=1.0.0            # Carregamento de variáveis de ambiente (.env)
+PyYAML>=6.0                     # Leitura e parsing de YAML / Frontmatter

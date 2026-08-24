@@ -1,0 +1,60 @@
+# ============================================================
+# Blog Automation System — Configurações Principais
+# ============================================================
+
+blog:
+  niche: "Seguro Acidentes Pessoais Estagiário / Seguro Estagiário"
+  language: "pt-BR"
+  author: "Seu Nome"
+  blog_name: "Seu Blog"
+  blog_url: ""                    # Preencher quando a plataforma for definida
+
+tone_of_voice:
+  style: "informativo e consultivo"   # ex: formal, descontraído, técnico
+  audience: "estudantes estagiários e empresas contratantes"
+  cta_type: "solicitar cotação / entrar em contato"
+
+ai:
+  provider: "gemini"
+  model: "gemini-2.5-flash"         # modelo atual rápido e estável
+  temperature: 0.7
+  max_output_tokens: 4096
+
+post:
+  default_tags:
+    - seguro-estagiário
+    - acidentes-pessoais
+    - estágio
+    - proteção-profissional
+  structure:
+    - titulo_seo
+    - subtitulo
+    - meta_description
+    - introducao_hook
+    - corpo
+    - cta
+
+pdf:
+  output_dir: "pdf-output"
+  template: "assets/pdf_template.html"
+  stylesheet: "assets/pdf_style.css"
+  logo: "assets/logo.png"           # Adicionar logo quando disponível
+  brand_color_primary: "#1A3C6E"    # Azul corporativo (ajustar conforme marca)
+  brand_color_accent: "#E87722"     # Laranja (ajustar conforme marca)
+  font_heading: "Montserrat"
+  font_body: "Inter"
+
+workspace:
+  inbox: "workspace/inbox"
+  drafts: "workspace/drafts"
+  approved: "workspace/approved"
+  scheduled: "workspace/scheduled"
+  published: "workspace/published"
+
+publisher:
+  platform: ""                      # wordpress | ghost | (a definir)
+  api_url: ""
+  api_key_env: "BLOG_API_KEY"
+
+scheduler:
+  mechanism: ""                     # apscheduler | cron | github_actions (a definir)

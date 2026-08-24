@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>{{ title }}</title>
+  <style>
+    /* ── Fontes seguras para xhtml2pdf ────────────────────────── */
+    /* xhtml2pdf não carrega Google Fonts; usa fontes do sistema  */
+
+    /* ── Configuração de página ──────────────────────────────── */
+    @page {
+      size: A4;
+      margin: 2.2cm 2cm 2.5cm 2cm;
+      @frame footer_frame {
+        -pdf-frame-content: footer_content;
+        left: 2cm; right: 2cm;
+        bottom: 0.8cm; height: 1cm;
+      }
+    }
+
+    /* ── Reset ────────────────────────────────────────────────── */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Helvetica, Arial, sans-serif;
+      font-size: 10.5pt;
+      line-height: 1.7;
+      color: #1A1A2E;
+    }
+
+    /* ── CAPA ─────────────────────────────────────────────────── */
+    .cover {
+      background-color: {{ brand_primary }};
+      color: white;
+      padding: 3cm 2cm 2cm 2cm;
+      page-break-after: always;
+    }
+
+    .cover-label {
+      font-size: 9pt;
+      font-weight: bold;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: {{ brand_accent }};
+      margin-bottom: 1.2cm;
+    }
+
+    .cover-title {
+      font-family: Helvetica, Arial, sans-serif;
+      font-size: 26pt;
+      font-weight: bold;
+      color: white;
+      line-height: 1.2;
+      margin-bottom: 0.5cm;
+    }
+
+    .cover-subtitle {
+      font-size: 13pt;
+      color: #cccccc;
+      margin-bottom: 1.2cm;
+      line-height: 1.5;
+    }
+
+    .cover-meta {
+      font-size: 9.5pt;
+      color: #aaaaaa;
+      margin-bottom: 2cm;
+    }
+
+    .cover-bar {
+      border-top: 2px solid {{ brand_accent }};
+      padding-top: 0.4cm;
+      margin-top: 0.5cm;
+      font-size: 8.5pt;
+      color: #aaaaaa;
+    }
+
+    /* ── CONTEÚDO ─────────────────────────────────────────────── */
+    h1 {
+      font-family: Helvetica, Arial, sans-serif;
+      font-size: 20pt;
+      font-weight: bold;
+      color: {{ brand_primary }};
+      line-height: 1.25;
+      margin-top: 0.8cm;
+      margin-bottom: 0.4cm;
+      padding-bottom: 0.25cm;
+      border-bottom: 3px solid {{ brand_accent }};
+    }
+
+    h2 {
+      font-family: Helvetica, Arial, sans-serif;
+      font-size: 14pt;
+      font-weight: bold;
+      color: {{ brand_primary }};
+      margin-top: 0.8cm;
+      margin-bottom: 0.3cm;
+    }
+
+    h3 {
+      font-family: Helvetica, Arial, sans-serif;
+      font-size: 11.5pt;
+      font-weight: bold;
+      color: #333333;
+      margin-top: 0.5cm;
+      margin-bottom: 0.2cm;
+    }
+
+    p { margin-bottom: 0.3cm; }
+
+    strong { font-weight: bold; color: {{ brand_primary }}; }
+    em     { font-style: italic; color: #555555; }
+
+    ul, ol {
+      margin: 0.3cm 0 0.3cm 0.8cm;
+      padding-left: 0.4cm;
+    }
+    li { margin-bottom: 0.1cm; }
+
+    hr {
+      border: none;
+      border-top: 1px solid #DDDDDD;
+      margin: 0.6cm 0;
+    }
+
+    /* ── Resumo / Callout ─────────────────────────────────────── */
+    .callout {
+      background-color: #F5F7FA;
+      border-left: 4px solid {{ brand_accent }};
+      padding: 0.35cm 0.6cm;
+      margin: 0.5cm 0;
+      font-size: 9.5pt;
+      color: #555555;
+    }
+    .callout strong { color: {{ brand_accent }}; }
+
+    blockquote {
+      border-left: 4px solid {{ brand_primary }};
+      padding: 0.3cm 0.6cm;
+      margin: 0.5cm 0;
+      color: #555555;
+      font-style: italic;
+      background-color: #F5F7FA;
+    }
+
+    /* ── Tabelas ──────────────────────────────────────────────── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0.5cm 0;
+      font-size: 9.5pt;
+    }
+    th {
+      background-color: {{ brand_primary }};
+      color: white;
+      font-weight: bold;
+      font-size: 9pt;
+      padding: 0.2cm 0.35cm;
+      text-align: left;
+    }
+    td {
+      padding: 0.18cm 0.35cm;
+      border-bottom: 1px solid #DDDDDD;
+    }
+    tr:nth-child(even) td { background-color: #F5F7FA; }
+
+    /* ── CTA box ──────────────────────────────────────────────── */
+    .cta-box {
+      background-color: {{ brand_primary }};
+      color: white;
+      padding: 0.6cm 0.8cm;
+      margin-top: 0.8cm;
+    }
+    .cta-box h2 { color: white; border: none; margin-top: 0; font-size: 13pt; }
+    .cta-box p  { color: #dddddd; }
+    .cta-box strong { color: {{ brand_accent }}; }
+
+    /* ── Rodapé ───────────────────────────────────────────────── */
+    #footer_content {
+      border-top: 1px solid {{ brand_primary }};
+      padding-top: 0.15cm;
+      font-size: 8pt;
+      color: #888888;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── CAPA ─────────────────────────────────────────────────── -->
+  <div class="cover">
+    <p class="cover-label">Artigo · {{ blog_name }}</p>
+
+    <h1 class="cover-title">{{ title }}</h1>
+
+    {% if subtitle %}
+    <p class="cover-subtitle">{{ subtitle }}</p>
+    {% endif %}
+
+    <div class="cover-meta">
+      {% if author %}{{ author }}{% endif %}
+      {% if author and publish_date %} · {% endif %}
+      {% if publish_date %}{{ publish_date }}{% endif %}
+    </div>
+
+    <div class="cover-bar">
+      <p>{{ blog_name }}{% if blog_url %} · {{ blog_url }}{% endif %}</p>
+    </div>
+  </div>
+
+  <!-- ── CONTEÚDO ──────────────────────────────────────────────── -->
+
+  {% if meta_description %}
+  <div class="callout">
+    <strong>Resumo:</strong> {{ meta_description }}
+  </div>
+  {% endif %}
+
+  {{ body_html }}
+
+  <!-- ── RODAPÉ (frame fixo) ───────────────────────────────────── -->
+  <div id="footer_content">
+    © {{ year }} {{ blog_name }} · Todos os direitos reservados
+    {% if blog_url %} · {{ blog_url }}{% endif %}
+  </div>
+
+</body>
+</html>
