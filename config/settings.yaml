@@ -16,7 +16,7 @@ tone_of_voice:
 
 ai:
   provider: "gemini"
-  model: "gemini-2.5-flash"         # modelo atual rápido e estável
+  model: "gemini-3.7-flash"         # modelo principal
   temperature: 0.7
   max_output_tokens: 4096
 

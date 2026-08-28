@@ -1,0 +1,13 @@
+{
+  "target_url": "https://nautiplus.com.br/landingpages/estagiario/pasi/",
+  "blog_url": "https://nautiplus.com.br/blog/",
+  "main_keyword": "seguro estagiário",
+  "current_rules": {
+    "tone": "autônomo/persuasivo",
+    "max_paragraphs_per_section": 3,
+    "include_faq": true,
+    "include_comparison_table": true,
+    "anchor_link_density": "alto"
+  },
+  "history": []
+}

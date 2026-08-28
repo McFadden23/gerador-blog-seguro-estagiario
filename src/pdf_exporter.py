@@ -184,7 +184,10 @@ def generate_linkedin_carousel_pdf(content: str, workspace_dir: Path, assets_dir
     title = frontmatter.get("title") or "Compliance no Onboarding de Estagiários"
     subtitle = frontmatter.get("subtitle") or "Segurança Jurídica e Agilidade com a Lei nº 11.788/2008"
 
-    logo_path = assets_dir / "Logo_nautiplus.png"
+    # Prioriza logo_nautiplus.jpeg (formato real do projeto)
+    logo_path = assets_dir / "logo_nautiplus.jpeg"
+    if not logo_path.exists():
+        logo_path = assets_dir / "Logo_nautiplus.png"
     if not logo_path.exists():
         logo_path = assets_dir / "logo.png"
     final_logo_str = str(logo_path) if logo_path.exists() else None
@@ -388,3 +391,174 @@ def generate_linkedin_carousel_pdf(content: str, workspace_dir: Path, assets_dir
     doc.build(story, canvasmaker=_canvas_factory)
     return buffer.getvalue()
 
+
+# ── Nova API: Carrossel a partir do resumo_carrossel ──────────────────────────
+
+def gerar_pdf_carrossel(
+    resumo_carrossel: list,
+    titulo: str,
+    assets_dir: Path,
+    workspace_dir: Path = None,
+    post_url: str = None,
+) -> bytes:
+    """
+    Gera o PDF de Carrossel para LinkedIn a partir da lista resumo_carrossel
+    retornada pelo gerar_artigo_autonomo() do generator.py.
+
+    Args:
+        resumo_carrossel: Lista de strings com os pontos-chave do artigo (4–6 itens).
+        titulo: Título do artigo (usado na capa do carrossel).
+        assets_dir: Path para o diretório assets/ (contém o logo).
+        workspace_dir: Path opcional para extrair cores da marca (01_diretrizes_e_tom.md).
+        post_url: URL do post publicado (usado no CTA final, opcional).
+
+    Returns:
+        bytes: Conteúdo binário do PDF gerado.
+    """
+    from reportlab.lib.colors import HexColor
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak
+
+    colors = get_brand_colors(workspace_dir)
+    assets_dir = Path(assets_dir)
+
+    # Resolve logo (prioridade: .jpeg → .png → sem logo)
+    logo_path = assets_dir / "logo_nautiplus.jpeg"
+    if not logo_path.exists():
+        logo_path = assets_dir / "Logo_nautiplus.png"
+    if not logo_path.exists():
+        logo_path = assets_dir / "logo.png"
+    final_logo_str = str(logo_path) if logo_path.exists() else None
+
+    # Cores
+    c_primary   = colors.get("primary", COLOR_PRIMARY_DEFAULT)
+    c_secondary = colors.get("secondary", COLOR_SECONDARY_DEFAULT)
+    c_text      = colors.get("text", COLOR_TEXT_DARK)
+    c_muted     = colors.get("muted", COLOR_TEXT_MUTED)
+
+    page_w, page_h = 1080, 1080
+    margin = 80
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=(page_w, page_h),
+        leftMargin=margin,
+        rightMargin=margin,
+        topMargin=160,
+        bottomMargin=120,
+    )
+
+    styles = getSampleStyleSheet()
+
+    st_badge = ParagraphStyle(
+        "Badge", parent=styles["Normal"],
+        fontName="Helvetica-Bold", fontSize=22, leading=28,
+        textColor=HexColor(c_primary), spaceAfter=20,
+    )
+    st_cover_title = ParagraphStyle(
+        "CoverTitle", parent=styles["Normal"],
+        fontName="Helvetica-Bold", fontSize=46, leading=56,
+        textColor=HexColor(c_secondary), spaceAfter=28,
+    )
+    st_cover_sub = ParagraphStyle(
+        "CoverSub", parent=styles["Normal"],
+        fontName="Helvetica", fontSize=24, leading=36,
+        textColor=HexColor(c_text), spaceAfter=30,
+    )
+    st_cover_cta = ParagraphStyle(
+        "CoverCTA", parent=styles["Normal"],
+        fontName="Helvetica-Bold", fontSize=22, leading=30,
+        textColor=HexColor(c_primary), spaceAfter=0,
+    )
+    st_slide_num = ParagraphStyle(
+        "SlideNum", parent=styles["Normal"],
+        fontName="Helvetica-Bold", fontSize=20, leading=26,
+        textColor=HexColor(c_primary), spaceAfter=15,
+    )
+    st_point = ParagraphStyle(
+        "Point", parent=styles["Normal"],
+        fontName="Helvetica-Bold", fontSize=34, leading=46,
+        textColor=HexColor(c_secondary), spaceAfter=20,
+    )
+    st_cta_badge = ParagraphStyle(
+        "CtaBadge", parent=styles["Normal"],
+        fontName="Helvetica-Bold", fontSize=22, leading=28,
+        textColor=HexColor(c_primary), alignment=1, spaceAfter=20,
+    )
+    st_cta_title = ParagraphStyle(
+        "CtaTitle", parent=styles["Normal"],
+        fontName="Helvetica-Bold", fontSize=44, leading=54,
+        textColor=HexColor(c_secondary), alignment=1, spaceAfter=22,
+    )
+    st_cta_body = ParagraphStyle(
+        "CtaBody", parent=styles["Normal"],
+        fontName="Helvetica", fontSize=24, leading=36,
+        textColor=HexColor(c_text), alignment=1, spaceAfter=30,
+    )
+    st_cta_url = ParagraphStyle(
+        "CtaUrl", parent=styles["Normal"],
+        fontName="Helvetica-Bold", fontSize=20, leading=28,
+        textColor=HexColor(c_muted), alignment=1, spaceAfter=0,
+    )
+
+    story = []
+
+    # ── SLIDE 1: CAPA ─────────────────────────────────────────────────────────
+    story.append(Spacer(1, 40))
+    story.append(Paragraph("📌 SEGURO ESTAGIÁRIO", st_badge))
+    story.append(Paragraph(titulo, st_cover_title))
+    story.append(Paragraph(
+        "O que todo RH precisa saber sobre o seguro obrigatório para estagiários",
+        st_cover_sub
+    ))
+    story.append(Spacer(1, 20))
+    story.append(Paragraph("<b>👉 Arraste para aprender</b>", st_cover_cta))
+    story.append(PageBreak())
+
+    # ── SLIDES DE CONTEÚDO (1 ponto por slide para máxima legibilidade) ───────
+    pontos = resumo_carrossel[:6] if resumo_carrossel else [
+        "Seguro estagiário é obrigatório pela Lei 11.788/2008",
+        "Empresa sem seguro pode ter vínculo empregatício reconhecido",
+        "A PASI cobre acidentes durante o período de estágio",
+        "Emita online em minutos com a Nautiplus",
+        "Apólice digital enviada imediatamente por e-mail",
+    ]
+
+    for i, ponto in enumerate(pontos, start=1):
+        story.append(Spacer(1, 60))
+        story.append(Paragraph(f"💡 Ponto #{i}", st_slide_num))
+        story.append(Spacer(1, 30))
+        story.append(Paragraph(ponto, st_point))
+        story.append(PageBreak())
+
+    # ── SLIDE FINAL: CTA ──────────────────────────────────────────────────────
+    cta_url = post_url or "nautiplus.com.br/blog/"
+    story.append(Spacer(1, 40))
+    story.append(Paragraph("🎯 PRÓXIMO PASSO", st_cta_badge))
+    story.append(Paragraph("Contrate o Seguro Estagiário Agora", st_cta_title))
+    story.append(Paragraph(
+        "Proteja sua empresa e seu estagiário com emissão\n"
+        "instantânea e apólice 100% digital da <b>Nautiplus</b>.",
+        st_cta_body
+    ))
+    story.append(Spacer(1, 15))
+    story.append(Paragraph(
+        "🔗 nautiplus.com.br/landingpages/estagiario/pasi/",
+        st_cta_url
+    ))
+    if cta_url and cta_url != "nautiplus.com.br/blog/":
+        story.append(Spacer(1, 8))
+        story.append(Paragraph(f"📖 Artigo completo: {cta_url}", st_cta_url))
+
+    def _canvas_maker(filename, **kwargs):
+        return NumberedCanvas(
+            filename,
+            brand_colors=colors,
+            logo_path=final_logo_str,
+            brand_name="Nautiplus · Seguro Estágio Rápido",
+            **kwargs
+        )
+
+    doc.build(story, canvasmaker=_canvas_maker)
+    return buffer.getvalue()

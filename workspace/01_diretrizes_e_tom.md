@@ -6,12 +6,13 @@
 - **Público-Alvo**:
   - Empresas e departamentos de RH que contratam estagiários
   - Gestores, coordenadores de estágio e profissionais de compliance
-  - Estudantes estagiários
+  - Administradores de Faculdades ou Universidades
 
 ## 🗣️ Tom de Voz e Estilo Editorial
 - **Linguagem**: Português do Brasil (PT-BR), claro, direto e profissional (formal com tom ágil, consultivo e acessível).
 - **Extensão dos posts**: 3 a 5 parágrafos no máximo, entregando alto valor informativo e direto ao ponto.
 - **Autoridade**: Tom de especialista em RH e Direito Trabalhista, sem jargões desnecessários.
+- **Cores da Marca**: Verde-Água / Turquesa	#00B7AA, Azul-Marinho	#12477B, Cinza-Azulado	#4A5F70, Gelo / Menta Claro	#DFEAE6.
 
 ## 🚫 O Que Evitar (Regras Negativas)
 - **Não usar traços duplos `--` no texto.**

@@ -1,23 +1,29 @@
-# Dependências do Blog Automation System
+# Dependências do Agente Autônomo de SEO/GEO — Nautiplus
 # Compatível com Streamlit Community Cloud (Linux / Python 3.10+)
 
 # ── Interface Web ─────────────────────────────────────────────────────────────
-streamlit>=1.30.0               # Interface web interativa
+streamlit>=1.30.0               # Interface web interativa (painel de controle)
 
 # ── IA / Geração de Conteúdo ──────────────────────────────────────────────────
-google-genai>=0.1.1             # SDK oficial do Google Gemini
-google-generativeai>=0.8.0      # SDK Gemini legado / complementar
+google-genai>=0.1.1             # SDK oficial do Google Gemini (novo)
+google-generativeai>=0.8.0      # SDK Gemini legado / fallback complementar
+
+# ── WordPress / HTTP ──────────────────────────────────────────────────────────
+requests>=2.31.0                # Requisições HTTP para a REST API do WordPress
+
+# ── Conversão de Conteúdo ─────────────────────────────────────────────────────
+markdown>=3.5.0                 # Markdown → HTML para publicação no WordPress
+markdown2>=2.4.0                # Markdown → HTML (usado no gerador de PDF completo)
 
 # ── Manipulação e Estruturação de Dados ───────────────────────────────────────
-pandas>=2.0.0                   # Manipulação e estruturação de dados
+pandas>=2.0.0                   # Tabelas do painel (log de aprendizado)
 
 # ── PDF / Carrossel LinkedIn ──────────────────────────────────────────────────
-reportlab>=4.0.0                # Renderização de Carrossel LinkedIn quadrado (1080x1080)
-xhtml2pdf>=0.2.17               # Conversão HTML → PDF (sem dependências nativas)
-markdown2>=2.4.0                # Markdown → HTML
-Jinja2>=3.1.0                   # Template engine para o HTML do PDF
+reportlab>=4.0.0                # Carrossel LinkedIn quadrado (1080x1080px)
+xhtml2pdf>=0.2.17               # Conversão HTML → PDF (artigo completo)
+Jinja2>=3.1.0                   # Template engine para PDF completo
 
 # ── CLI & Utilitários ─────────────────────────────────────────────────────────
-click>=8.1.0                    # Interface de linha de comando
+click>=8.1.0                    # Interface de linha de comando (cli.py)
 python-dotenv>=1.0.0            # Carregamento de variáveis de ambiente (.env)
 PyYAML>=6.0                     # Leitura e parsing de YAML / Frontmatter
